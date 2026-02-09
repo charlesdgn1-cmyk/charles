@@ -1,5 +1,4 @@
--- [[ CHARLES CLICKS MODE: CYBERPUNK ]] --
--- [[ ONLY TELEPORT & ULTRA FPS BOOST ]] --
+-- [[ CHARLES CLICKS MODE - FIXED VERSION ]] --
 
 local teleportZoneName = "Cyberpunk" 
 
@@ -9,7 +8,6 @@ local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local lp = Players.LocalPlayer
 
--- [[ 1. DİNAMİK REMOTE BULUCU ]] --
 local function getTeleportRemote()
     for _, obj in ipairs(ReplicatedStorage:GetChildren()) do
         local functions = obj:FindFirstChild("Functions")
@@ -21,18 +19,16 @@ local function getTeleportRemote()
     return nil
 end
 
--- [[ 2. ULTRA AGRESİF FPS BOOST ]] --
--- Tıklama kasmak için sadece karakterin ve zeminin kalması yeterlidir.
-local function ultraNuke()
-    -- Işıklandırma ve Efektleri Kökten Sil
+local function safeNuke()
+    -- Işıklandırma temizliği
     Lighting.GlobalShadows = false
     Lighting.FogEnd = 9e9
-    Lighting.Brightness = 0 -- Göz yormaz
+    Lighting.Brightness = 0
     for _, v in pairs(Lighting:GetChildren()) do
         pcall(function() v:Destroy() end)
     end
 
-    -- Dünyadaki HER ŞEYİ Sil (Karakter ve Temel Gereksinimler Hariç)
+    -- Dünyayı temizle ama Karakterin İÇİNE dokunma (Hata veren kısım burasıydı)
     for _, obj in pairs(Workspace:GetChildren()) do
         if obj.Name ~= lp.Name and 
            obj.Name ~= "Camera" and 
@@ -42,48 +38,45 @@ local function ultraNuke()
         end
     end
     
-    -- Dokuları ve Efektleri Sil (CPU/GPU Tasarrufu)
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
-            pcall(function() v:Destroy() end)
+    -- Sadece karakterin dışındaki dokuları sil
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if not v:IsDescendantOf(lp.Character) then -- Karakterin parçalarını koru
+            if v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                pcall(function() v:Destroy() end)
+            end
         end
     end
 
     Workspace.Terrain:Clear()
 end
 
--- [[ 3. GÜVENLİ ZEMİN OLUŞTUR ]] --
 local function createFarmPlatform()
     if not Workspace:FindFirstChild("SafetyFloor") then
         local floor = Instance.new("Part")
         floor.Name = "SafetyFloor"
         floor.Size = Vector3.new(100, 1, 100)
-        floor.CFrame = CFrame.new(0, 1000, 0) -- Çok yükseğe veya merkeze alalım
+        floor.CFrame = CFrame.new(0, 1000, 0)
         floor.Anchored = true
         floor.Transparency = 0.5
         floor.BrickColor = BrickColor.new("Really black")
         floor.Parent = Workspace
         return floor
     end
+    return Workspace:FindFirstChild("SafetyFloor")
 end
 
--- [[ ÇALIŞTIRICI ]] --
-
--- ADIM 1: Işınlanma
+-- ÇALIŞTIRICI
 local tpRemote = getTeleportRemote()
 if tpRemote then
-    print("🌐 Cyberpunk bölgesine geçiliyor...")
     tpRemote:InvokeServer(teleportZoneName)
-    task.wait(1.5) -- Yüklenmesi için kısa süre bekle
+    task.wait(1.5)
 end
 
--- ADIM 2: Temizlik ve Platform
 local platform = createFarmPlatform()
-ultraNuke()
+safeNuke()
 
--- ADIM 3: Karakteri Güvenli Platforma Al
 if lp.Character and platform then
     lp.Character:PivotTo(platform.CFrame * CFrame.new(0, 5, 0))
 end
 
-print("🚀 Clicks Modu Aktif! Dunya temizlendi, sadece tiklamaya odaklanabilirsin.")
+print("🚀 Hata Düzeltildi & Clicks Modu Aktif!")
