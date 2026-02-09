@@ -1,110 +1,144 @@
--- [[ CHARLES PROTECTED SOURCE ]] --
--- [[ TARGET: CYBERPUNK - BASE FIXED ]] --
+-- [[ AYARLAR ]] --
+local targetEggName = "Cyberpunk"  -- Açılacak yumurta adı (Güncellendi)
+local teleportZoneName = "Cyberpunk" -- Işınlanılacak ada/bölge adı
+local openAmount = 8 
+local hatchSpeed = 0 
 
-local _0x82 = {"\82\101\112\108\105\99\97\116\101\100\83\116\111\114\97\103\101", "\87\111\114\107\115\112\97\99\101", "\80\108\97\121\101\114\115", "\76\105\103\104\116\105\110\103", "\67\121\98\101\114\112\117\110\107", "\69\103\103\115", "\67\97\109\101\114\97", "\84\101\114\114\97\105\110", "\83\97\102\101\116\121\70\108\111\111\114"}
-local _v1 = game:GetService(_0x82[1])
-local _v2 = game:GetService(_0x82[2])
-local _v3 = game:GetService(_0x82[3])
-local _v4 = game:GetService(_0x82[4])
-local _v5 = _v3.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local lp = Players.LocalPlayer
 
-local _0xCFG = {
-    egg = _0x82[5], -- Artık "Cyberpunk" byte kodunu temsil ediyor
-    amt = 8,
-    spd = 0
-}
-
-local function _0xNK()
-    for _, v in pairs(_v2:GetChildren()) do
-        if v.Name ~= _v5.Name and v.Name ~= _0x82[7] and v.Name ~= _0x82[6] and v.Name ~= _0x82[9] and not v:IsA(_0x82[8]) then
-            pcall(function() v:Destroy() end)
-        end
-    end
-    local _ef = _v2:FindFirstChild(_0x82[6])
-    if _ef then
-        for _, e in pairs(_ef:GetChildren()) do
-            if not e.Name:find(_0xCFG.egg) then
-                pcall(function() e:Destroy() end)
+-- [[ 1. DİNAMİK REMOTE BULUCU ]] --
+local function getGameRemote(remoteName)
+    for _, obj in ipairs(ReplicatedStorage:GetChildren()) do
+        local functions = obj:FindFirstChild("Functions")
+        if functions then
+            local target = functions:FindFirstChild(remoteName)
+            if target then
+                return target
             end
         end
     end
-    _v2.Terrain:Clear()
+    return nil
 end
 
-local function _0xCL()
-    _v4.GlobalShadows = false
-    _v4.FogEnd = 9e9
-    _v4.Brightness = 1
-    _v4.ClockTime = 12
-    for _, v in pairs(_v4:GetChildren()) do
-        if v:IsA("\80\111\115\116\69\102\102\101\99\116") or v:IsA("\83\107\121") or v:IsA("\67\108\111\117\100\115") then
-            v:Destroy()
+-- [[ 2. AGRESİF FPS BOOST (DÜNYAYI TEMİZLE) ]] --
+local function nukeWorld()
+    for _, obj in pairs(Workspace:GetChildren()) do
+        if obj.Name ~= lp.Name and 
+           obj.Name ~= "Camera" and 
+           obj.Name ~= "Eggs" and 
+           obj.Name ~= "SafetyFloor" and -- Zemin koruması eklendi
+           not obj:IsA("Terrain") then
+            pcall(function() obj:Destroy() end)
         end
     end
-    local _s = Instance.new("\83\107\121", _v4)
-    _s.SunTextureId = ""
-    _s.MoonTextureId = ""
+
+    local eggsFolder = Workspace:FindFirstChild("Eggs")
+    if eggsFolder then
+        for _, egg in pairs(eggsFolder:GetChildren()) do
+            if not egg.Name:find(targetEggName) then
+                pcall(function() egg:Destroy() end)
+            end
+        end
+    end
+    Workspace.Terrain:Clear()
 end
 
-local function _0xBF(_t)
-    local _f = Instance.new("\80\97\114\116")
-    _f.Name = _0x82[9]
-    _f.Size = Vector3.new(50, 2, 50)
-    _f.CFrame = _t:GetPivot() * CFrame.new(0, -5, 0)
-    _f.Anchored = true
-    _f.Transparency = 0.5 
-    _f.BrickColor = BrickColor.new("\66\114\105\103\104\116\32\98\108\117\101")
-    _f.Parent = _v2
-    return _f
+-- [[ 3. HAVA DURUMUNU VE EFEKTLERİ SIFIRLA ]] --
+local function cleanLighting()
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.Brightness = 1
+    Lighting.ClockTime = 12
+    Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    
+    for _, effect in pairs(Lighting:GetChildren()) do
+        if effect:IsA("PostEffect") or effect:IsA("Sky") or effect:IsA("Clouds") then
+            effect:Destroy()
+        end
+    end
+    
+    local sky = Instance.new("Sky", Lighting)
+    sky.SunTextureId = ""
+    sky.MoonTextureId = ""
 end
 
-local function _0xHG(_m)
-    if _m then
-        for _, v in pairs(_m:GetDescendants()) do
-            if v:IsA("\66\97\115\101\80\97\114\116") or v:IsA("\77\101\115\104\80\97\114\116") then
-                v.Transparency = 1
-                v.CastShadow = false
-            elseif v:IsA("\68\101\99\97\108") or v:IsA("\84\101\120\116\117\114\101") then
-                pcall(function() v:Destroy() end)
-            elseif v:IsA("\80\97\114\116\105\99\108\101\69\109\105\116\116\101\114") or v:IsA("\84\114\97\105\108") then
-                v.Enabled = false
+-- [[ 4. YUMURTAYI GİZLE ]] --
+local function hideEgg(eggModel)
+    if eggModel then
+        for _, part in pairs(eggModel:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("MeshPart") then
+                part.Transparency = 1 
+                part.CastShadow = false
+            elseif part:IsA("Decal") or part:IsA("Texture") then
+                part:Destroy()
+            elseif part:IsA("ParticleEmitter") or part:IsA("Trail") then
+                part.Enabled = false
             end
         end
     end
 end
 
-local function _0xOR()
-    for _, v in ipairs(_v1:GetChildren()) do
-        local f = v:FindFirstChild("\70\117\110\99\116\105\111\110\115")
-        if f and f:FindFirstChild("\79\112\101\110\69\103\103") then
-            return f.OpenEgg
-        end
-    end
+-- [[ 5. GÜVENLİ ZEMİN ]] --
+local function createFloorAtEgg(target)
+    local floor = Instance.new("Part")
+    floor.Name = "SafetyFloor"
+    floor.Size = Vector3.new(50, 2, 50)
+    floor.CFrame = target:GetPivot() * CFrame.new(0, -5, 0)
+    floor.Anchored = true
+    floor.Transparency = 0.5 
+    floor.BrickColor = BrickColor.new("Bright blue")
+    floor.Parent = Workspace
+    return floor
 end
 
-local _0xEG = _v2:FindFirstChild(_0x82[6])
-local _0xMDL = _0xEG and (_0xEG:FindFirstChild(_0xCFG.egg) or _0xEG:FindFirstChild(_0xCFG.egg .. " \69\103\103"))
+-- [[ ANA ÇALIŞTIRICI ]] --
 
-if _0xMDL then
-    _0xNK()
-    _0xCL()
-    _0xBF(_0xMDL)
-    _0xHG(_0xMDL)
+-- ADIM 1: Adaya Işınlan
+local tpRemote = getGameRemote("TeleportZone")
+if tpRemote then
+    print("🌐 " .. teleportZoneName .. " adasına ışınlanılıyor...")
+    tpRemote:InvokeServer(teleportZoneName)
+    task.wait(1) 
+else
+    warn("⚠️ Teleport Remote bulunamadı!")
+end
+
+-- ADIM 2: Yumurtayı Bul ve Dünyayı Hazırla
+local eggsFolder = Workspace:FindFirstChild("Eggs")
+local eggModel = eggsFolder and (eggsFolder:FindFirstChild(targetEggName) or eggsFolder:FindFirstChild(targetEggName .. " Egg"))
+
+if eggModel then
+    nukeWorld()
+    cleanLighting()
+    createFloorAtEgg(eggModel)
+    hideEgg(eggModel)
     
     task.wait(0.2)
-    if _v5.Character then
-        _v5.Character:PivotTo(_0xMDL:GetPivot() * CFrame.new(0, 0, 2))
+    if lp.Character then
+        lp.Character:PivotTo(eggModel:GetPivot() * CFrame.new(0, 0, 2))
     end
     
+    -- ADIM 3: Auto Hatch
     _G.AutoHatch = true
+    print("🚀 Sistem Aktif: " .. targetEggName .. " açılıyor!")
+
     task.spawn(function()
         while _G.AutoHatch do
-            local rem = _0xOR()
-            if rem then
-                local s = rem:InvokeServer(_0xCFG.egg, _0xCFG.amt)
-                if not s then rem:InvokeServer(_0xCFG.egg .. " \69\103\103", _0xCFG.amt) end
+            local openRemote = getGameRemote("OpenEgg")
+            if openRemote then
+                -- Cyberpunk veya Cyberpunk Egg ikisini de dener
+                local success = openRemote:InvokeServer(targetEggName, openAmount)
+                if not success then
+                    openRemote:InvokeServer(targetEggName .. " Egg", openAmount)
+                end
             end
-            task.wait(_0xCFG.spd)
+            task.wait(hatchSpeed)
         end
     end)
+else
+    warn("❌ Hedef yumurta (" .. targetEggName .. ") ışınlanılan adada bulunamadı!")
 end
