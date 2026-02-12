@@ -153,11 +153,18 @@
         -- [[ 2. AGRESİF FPS BOOST (DÜNYAYI TEMİZLE) ]] --
         local function nukeWorld()
             for _, obj in pairs(Workspace:GetChildren()) do
-                if obj.Name ~= lp.Name and 
+                -- 1. Island Klasörünün İçini Cerrahi Temizle
+                if obj.Name == "Island" then
+                    for _, child in pairs(obj:GetChildren()) do
+                        if not child.Name:lower():find("candy") then
+                            pcall(function() child:Destroy() end)
+                        end
+                    end
+                -- 2. Workspace'teki Diğer Gereksiz Şeyleri Sil (Karakter, Kamera, Yumurtalar ve Base hariç)
+                elseif obj.Name ~= lp.Name and 
                 obj.Name ~= "Camera" and 
                 obj.Name ~= "Eggs" and 
                 not obj.Name:find("SafetyFloor") and 
-                not obj.Name:find("Island") and 
                 not obj:IsA("Terrain") then
                     pcall(function() obj:Destroy() end)
                 end
@@ -312,6 +319,6 @@
                     task.wait(hatchSpeed)
                 end
             end)
-        else
+        else 
             warn("❌ Hedef yumurta (" .. targetEggName .. ") ışınlanılan adada bulunamadı!")
         end
