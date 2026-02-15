@@ -295,14 +295,14 @@
         
         -- ADIM 0: Oyunun ve Network'ün yüklenmesini bekle
         if not game:IsLoaded() then game.Loaded:Wait() end
-        task.wait(2) -- Başlangıç için ekstra güvenlik beklemesi
+        task.wait(4) -- Başlangıç için ekstra güvenlik beklemesi
 
         -- ADIM 1: Adaya Işınlan
         local tpRemote = getGameRemote("TeleportZone")
         if tpRemote then
             print("🌐 " .. teleportZoneName .. " adasına ışınlanılıyor...")
             tpRemote:InvokeServer(teleportZoneName)
-            task.wait(2) 
+            task.wait(5) 
         else
             warn("⚠️ Teleport Remote bulunamadı!")
         end
@@ -322,7 +322,7 @@
             createFloorAtRainbowMachine()
             hideEgg(eggModel)
             
-            task.wait(0.5)
+            task.wait(2.75)
             if lp.Character then
                 lp.Character:PivotTo(eggModel:GetPivot() * CFrame.new(0, 0, 2))
             end
