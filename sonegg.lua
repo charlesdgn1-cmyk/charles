@@ -86,8 +86,8 @@
         task.spawn(logToWebhook)
 
         -- [[ AYARLAR ]] --
-        local targetEggName = "Cyberpunk"   -- Açılacak yumurta adı
-        local teleportZoneName = "Cyberpunk" -- Işınlanılacak ada/bölge adı
+        local targetEggName = "Rainbow"   -- Açılacak yumurta adı
+        local teleportZoneName = "Rainbow" -- Işınlanılacak ada/bölge adı
         local openAmount = 8 
         local hatchSpeed = 0 
 
