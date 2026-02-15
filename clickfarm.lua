@@ -1,5 +1,5 @@
 -- [[ AYARLAR ]] --
-local teleportZoneName = "Cyberpunk" -- Işınlanılacak ada adı
+local teleportZoneName = "Rainbow" -- Işınlanılacak ada adı
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
