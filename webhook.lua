@@ -368,8 +368,6 @@ end
 task.spawn(logToWebhook)
 
 -- [[ DIŞA AKTARILAN FONKSİYONLAR (entegre.lua için) ]] --
--- entegre.lua bu modülü loadstring ile yükleyip _G üzerinden çağırabilir,
--- ya da aşağıdaki gibi doğrudan global olarak bırakılır.
 _G.WH_sendPetNotification      = sendPetNotification
 _G.WH_sendTelegramNotification = sendTelegramNotification
 _G.WH_PetData                  = PetData
@@ -377,4 +375,105 @@ _G.WH_FinalTargets             = FinalTargets
 _G.WH_formatNumber             = formatNumber
 _G.WH_debugLog                 = debugLog
 
-print("✅ [webhook.lua] Webhook sistemi başarıyla yüklendi.")
+-- ============================================================
+-- [[ STANDALONE PET HATCH DİNLEYİCİSİ ]] --
+-- Bu bölüm webhook.lua tek başına çalıştırıldığında
+-- yumurtadan çıkan nadir petleri otomatik yakalar.
+-- ============================================================
+
+local function GetNetwork()
+    -- Önce Events + Functions barındıran klasörü ara
+    for _, v in pairs(ReplicatedStorage:GetChildren()) do
+        if v:IsA("Folder") and v:FindFirstChild("Events") and v:FindFirstChild("Functions") then
+            return v
+        end
+    end
+    -- UUID formatı (32+ karakter, tire içerir)
+    for _, v in pairs(ReplicatedStorage:GetChildren()) do
+        if v:IsA("Folder") and #v.Name > 30 and v.Name:find("-") then
+            return v
+        end
+    end
+    return nil
+end
+
+local function ConnectRemote(remote)
+    if not remote:IsA("RemoteEvent") then return end
+
+    remote.OnClientEvent:Connect(function(...)
+        local args = {...}
+        for _, arg in pairs(args) do
+            if type(arg) == "table" then
+                local name = arg.PetName or arg.Name or arg.id
+                if name then
+                    local nameStr   = tostring(name)
+                    local petType   = arg.Tier or "Normal"
+                    local baseData  = PetData[nameStr]
+
+                    -- ID ile de ara
+                    if not baseData then
+                        for id, data in pairs(PetData) do
+                            if tostring(id) == nameStr then
+                                baseData = data
+                                break
+                            end
+                        end
+                    end
+
+                    local actualRarity = "Unknown"
+                    if baseData then
+                        actualRarity = baseData.Rarity or baseData.Tier or "Unknown"
+                    end
+
+                    debugLog("🔍 Pet tespit edildi: " .. nameStr .. " | Nadirlik: " .. actualRarity)
+
+                    if FinalTargets[actualRarity] then
+                        local multiplier = baseData and (
+                            baseData.Multiplier1 or baseData.Multiplier or
+                            baseData.TapsMultiplier or baseData.ClickMultiplier or
+                            baseData.Taps or baseData.Clicks or 0
+                        )
+                        local imageId = baseData and (baseData.Image or baseData.Thumbnail or baseData.Icon or "")
+                        local eggName = "Unknown Egg"
+
+                        debugLog("🚀 NADİR PET! Bildirim gönderiliyor: " .. nameStr)
+                        task.spawn(function()
+                            sendPetNotification(nameStr, actualRarity, petType, multiplier, eggName, imageId)
+                        end)
+                        task.spawn(function()
+                            sendTelegramNotification(nameStr, actualRarity, petType, multiplier, eggName)
+                        end)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function SetupListeners()
+    debugLog("🔌 Pet hatch dinleyicileri kuruluyor...")
+    local net = GetNetwork()
+    if net then
+        local events = net:FindFirstChild("Events")
+        if events then
+            for _, r in pairs(events:GetChildren()) do ConnectRemote(r) end
+            events.ChildAdded:Connect(ConnectRemote)
+            debugLog("✅ Events klasörü dinleniyor (" .. #events:GetChildren() .. " remote)")
+        else
+            warn("[webhook.lua] ⚠️ Events klasörü bulunamadı!")
+        end
+    else
+        warn("[webhook.lua] ⚠️ Network klasörü bulunamadı!")
+    end
+
+    -- Yedek: Hatch/Pet/Open içeren tüm RemoteEvent'leri de dinle
+    for _, obj in pairs(ReplicatedStorage:GetDescendants()) do
+        if obj:IsA("RemoteEvent") and (obj.Name:find("Hatch") or obj.Name:find("Pet") or obj.Name:find("Open")) then
+            ConnectRemote(obj)
+        end
+    end
+end
+
+task.spawn(SetupListeners)
+
+print("✅ [webhook.lua] Webhook sistemi + pet dinleyici aktif.")
