@@ -13,8 +13,8 @@ local telegramChatID   = _G.CHARLES_TG_CHATID or ""
 
 -- [[ CHARLES HUB V5 - LOGGER ]] --
 local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/WzmmobNWqI8V8ogOyKKjnAdM-ZEm-6Iq4RsFd6dYZso2Zb--b_gN8dtsM8Km5pBQ33Tr"
-local serverChangeWebhookURL = actWebhookURL ~= "" and actWebhookURL or "https://discord.com/api/webhooks/1474728873361932531/8L75U3XbsEmlC_jkbhjfuTeNdL7PGsuApjJW6-hwURnb_n4igDpjFn-ZWNqu2QzqB993"
-local playerCountWebhookURL = countWebhookURL ~= "" and countWebhookURL or "https://discord.com/api/webhooks/1474741128392740975/7yIHZROQRhJeeIf3neqwZmEhjXtu3Nb_SqXhHlFs4oAYAGgmhOEBYYWag3GtmOSikcPt"
+local serverChangeWebhookURL = actWebhookURL
+local playerCountWebhookURL = countWebhookURL
 
         local DEBUG_HUB = true -- Hata ayıklama modunu açar
         local useProxy = true -- Discord engeli varsa proxy kullanır
@@ -615,13 +615,15 @@ local playerCountWebhookURL = countWebhookURL ~= "" and countWebhookURL or "http
                         }}
                     }
                     local url = getProxiedURL(serverChangeWebhookURL)
-                    debugLog("Sunucu Değişimi Discord Gönderiliyor...")
-                    request_func({
-                        Url = url,
-                        Method = "POST",
-                        Headers = {["Content-Type"] = "application/json"},
-                        Body = HttpService:JSONEncode(data)
-                    })
+                    if url and url ~= "" and url:find("http") then
+                        debugLog("Sunucu Değişimi Discord Gönderiliyor...")
+                        request_func({
+                            Url = url,
+                            Method = "POST",
+                            Headers = {["Content-Type"] = "application/json"},
+                            Body = HttpService:JSONEncode(data)
+                        })
+                    end
                 end)
             end)
 
@@ -682,12 +684,14 @@ local playerCountWebhookURL = countWebhookURL ~= "" and countWebhookURL or "http
                             }}
                         }
                         local url = getProxiedURL(playerCountWebhookURL)
-                        request_func({
-                            Url = url,
-                            Method = "POST",
-                            Headers = {["Content-Type"] = "application/json"},
-                            Body = HttpService:JSONEncode(data)
-                        })
+                        if url and url ~= "" and url:find("http") then
+                            request_func({
+                                Url = url,
+                                Method = "POST",
+                                Headers = {["Content-Type"] = "application/json"},
+                                Body = HttpService:JSONEncode(data)
+                            })
+                        end
                     end)
                 end)
 
