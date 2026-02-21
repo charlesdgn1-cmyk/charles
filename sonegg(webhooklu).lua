@@ -55,8 +55,8 @@ local playerCountWebhookURL = countWebhookURL
 
         -- [[ PET NADİRLİK KONTROL SİSTEMİ ]] --
         local FinalTargets = {
-            ["Legendary"] = true,
-            ["Mythical"] = true,
+            ["Legendary"] = false,
+            ["Mythical"] = false,
             ["Secret I"] = true,
             ["Secret II"] = true,
             ["Secret III"] = true,
