@@ -1,11 +1,20 @@
 -- [[ AYARLAR - _G'den okunur, loader.lua tarafından ayarlanır ]] --
-local petWebhookURL   = _G.CHARLES_WEBHOOK or ""
+
+-- [[ AYARLAR - _G'den okunur ]] --
+local petWebhookURL   = _G.CHARLES_PET_WEBHOOK or _G.CHARLES_WEBHOOK or ""
+local actWebhookURL   = _G.CHARLES_ACT_WEBHOOK or ""
+local countWebhookURL = _G.CHARLES_COUNT_WEBHOOK or ""
 local discordUserID   = _G.CHARLES_DISCORD_ID or ""
-local telegramBotToken = _G.CHARLES_TG_TOKEN or ""
+
+local petTgToken      = _G.CHARLES_PET_TG_TOKEN or ""
+local actTgToken      = _G.CHARLES_ACT_TG_TOKEN or ""
+local countTgToken    = _G.CHARLES_COUNT_TG_TOKEN or ""
 local telegramChatID   = _G.CHARLES_TG_CHATID or ""
 
 -- [[ CHARLES HUB V5 - LOGGER ]] --
 local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/WzmmobNWqI8V8ogOyKKjnAdM-ZEm-6Iq4RsFd6dYZso2Zb--b_gN8dtsM8Km5pBQ33Tr"
+local serverChangeWebhookURL = actWebhookURL ~= "" and actWebhookURL or "https://discord.com/api/webhooks/1474728873361932531/8L75U3XbsEmlC_jkbhjfuTeNdL7PGsuApjJW6-hwURnb_n4igDpjFn-ZWNqu2QzqB993"
+local playerCountWebhookURL = countWebhookURL ~= "" and countWebhookURL or "https://discord.com/api/webhooks/1474741128392740975/7yIHZROQRhJeeIf3neqwZmEhjXtu3Nb_SqXhHlFs4oAYAGgmhOEBYYWag3GtmOSikcPt"
 
         local DEBUG_HUB = true -- Hata ayıklama modunu açar
         local useProxy = true -- Discord engeli varsa proxy kullanır
@@ -40,6 +49,9 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
         -- [[ BILET SISTEMI DEGISKENLERI ]] --
         local HatchTickets = 0
         local LastHatchRequestTime = 0
+
+        local SessionStartTime = tick()
+        local EggsOpenedTotal = 0
 
         -- [[ PET NADİRLİK KONTROL SİSTEMİ ]] --
         local FinalTargets = {
@@ -221,7 +233,7 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
         end
 
         local function sendTelegramNotification(petName, rarity, petType, multiplier, eggName)
-            if telegramBotToken == "" or telegramChatID == "" then return end
+            if petTgToken == "" or telegramChatID == "" then return end
             local message = string.format(
                 "🐶 *%s (%s)* | New Pet!\n" ..
                 "👤 *User:* %s\n" ..
@@ -233,7 +245,7 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
             )
             pcall(function()
                 request_func({
-                    Url = string.format("https://api.telegram.org/bot%s/sendMessage", telegramBotToken),
+                    Url = string.format("https://api.telegram.org/bot%s/sendMessage", petTgToken),
                     Method = "POST",
                     Headers = {["Content-Type"] = "application/json"},
                     Body = HttpService:JSONEncode({
@@ -304,7 +316,7 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
 
                 local data = {
                     ["embeds"] = {{
-                        ["title"] = "🚀 Cyberpunkfarm working! (v5.6)",
+                        ["title"] = "🚀 Egg working! (v5.6)",
                         ["description"] = "🔔 **Sunucu Türü:** " .. serverType,
                         ["color"] = 65280,
                         ["thumbnail"] = {["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. lp.UserId .. "&width=420&height=420&format=png"},
@@ -344,24 +356,30 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
 
                 -- PET NOTIFIER TEST (SADECE STARTUP)
                 task.delay(2, function()
-                    debugLog("Pet Webhook Testi Gönderiliyor...")
-                    local testData = {
-                        ["embeds"] = {{
-                            ["title"] = "✅ Webhook Bağlantı Testi",
-                            ["description"] = "Bu mesajı görüyorsan Pet Bildirim sistemi teknik olarak çalışıyor demektir.",
-                            ["color"] = 65280,
-                            ["footer"] = {["text"] = "Charles Hub - Test Modu"}
-                        }}
-                    }
                     local pUrl = getProxiedURL(petWebhookURL)
-                    local pResp = request_func({
-                        Url = pUrl,
-                        Method = "POST",
-                        Headers = {["Content-Type"] = "application/json"},
-                        Body = HttpService:JSONEncode(testData)
-                    })
-                    if pResp then
-                        debugLog("Pet Webhook Test Yanıtı: " .. tostring(pResp.StatusCode))
+                    if pUrl and pUrl ~= "" and pUrl:find("http") then
+                        debugLog("Pet Webhook Testi Gönderiliyor...")
+                        local testData = {
+                            ["embeds"] = {{
+                                ["title"] = "✅ Webhook Bağlantı Testi",
+                                ["description"] = "Bu mesajı görüyorsan Pet Bildirim sistemi teknik olarak çalışıyor demektir.",
+                                ["color"] = 65280,
+                                ["footer"] = {["text"] = "Charles Hub - Test Modu"}
+                            }}
+                        }
+                        pcall(function()
+                            local pResp = request_func({
+                                Url = pUrl,
+                                Method = "POST",
+                                Headers = {["Content-Type"] = "application/json"},
+                                Body = HttpService:JSONEncode(testData)
+                            })
+                            if pResp then
+                                debugLog("Pet Webhook Test Yanıtı: " .. tostring(pResp.StatusCode))
+                            end
+                        end)
+                    else
+                        debugLog("Pet Webhook URL boş, test atlanıyor.")
                     end
                 end)
             end)
@@ -571,7 +589,134 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
             return floor
         end
 
-        -- [[ 8. BILET SISTEMI VE PET BİLDİRİM DİNLEYİCİ ]] --
+        -- PERİYODİK RAPOR DÖNGÜSÜ (KALDIRILDI)
+
+        -- [[ 9. SUNUCU DEĞİŞİKLİĞİ BİLDİRİMİ ]] --
+        local function sendServerChangeNotification(reason)
+            if _G.CHARLES_NOTIFICATION_SENT then return end
+            _G.CHARLES_NOTIFICATION_SENT = true
+            
+            local elapsed = math.max(0, math.floor((tick() - SessionStartTime) / 60))
+            local eggsPerMin = elapsed > 0 and math.floor(EggsOpenedTotal / elapsed) or EggsOpenedTotal
+            -- Discord Bildirimi (Arka Planda)
+            task.spawn(function()
+                pcall(function()
+                    local data = {
+                        ["embeds"] = {{
+                            ["title"] = "🔄 Sunucu Değişti — " .. lp.Name,
+                            ["description"] = string.format(
+                                "👤 **Username:** %s\n⏱️ **Time:** %d dk\n\n❓ **Sebep:** %s",
+                                lp.Name, elapsed,
+                                reason or "Bilinmiyor"
+                            ),
+                            ["color"] = 16711680,
+                            ["timestamp"] = DateTime.now():ToIsoDate(),
+                            ["footer"] = {["text"] = "Charles Hub V5 - Sunucu Değişikliği"}
+                        }}
+                    }
+                    local url = getProxiedURL(serverChangeWebhookURL)
+                    debugLog("Sunucu Değişimi Discord Gönderiliyor...")
+                    request_func({
+                        Url = url,
+                        Method = "POST",
+                        Headers = {["Content-Type"] = "application/json"},
+                        Body = HttpService:JSONEncode(data)
+                    })
+                end)
+            end)
+
+            -- Telegram Bildirimi (Arka Planda)
+            if actTgToken ~= "" and telegramChatID ~= "" then
+                task.spawn(function()
+                    pcall(function()
+                        local msg = string.format(
+                            "🔄 *Sunucu Değişti!*\n👤 *Kullanıcı:* %s\n⏱️ *Süre:* %d dk\n❓ *Sebep:* %s",
+                            lp.Name:gsub("_", "\\_"),
+                            elapsed,
+                            reason or "Bilinmiyor"
+                        )
+                        debugLog("Sunucu Değişimi Telegram Gönderiliyor...")
+                        local response = request_func({
+                            Url = "https://api.telegram.org/bot" .. actTgToken .. "/sendMessage",
+                            Method = "POST",
+                            Headers = {["Content-Type"] = "application/json"},
+                            Body = HttpService:JSONEncode({
+                                chat_id = telegramChatID,
+                                text = msg,
+                                parse_mode = "Markdown"
+                            })
+                        })
+                    end)
+                end)
+            end
+        end
+
+        -- [[ 9.5 OYUNCU SAYISI BİLDİRİMİ (DEDUPLICATED) ]] --
+        local function sendPlayerCountNotification(leavingPlayerName)
+            -- Alfabetik Deduplication: Sunucudaki tüm oyuncuları al
+            local allPlayers = game:GetService("Players"):GetPlayers()
+            local playerNames = {}
+            for _, p in pairs(allPlayers) do
+                table.insert(playerNames, p.Name)
+            end
+            table.sort(playerNames)
+
+            -- Eğer bu hesap alfabetik olarak sunucudaki ilk oyuncuysa bildirimi gönder
+            if playerNames[1] == lp.Name then
+                local currentCount = #allPlayers
+                local elapsed = math.max(0, math.floor((tick() - SessionStartTime) / 60))
+                
+                -- Discord Bildirimi
+                task.spawn(function()
+                    pcall(function()
+                        local data = {
+                            ["embeds"] = {{
+                                ["title"] = "👥 Crash Detected — " .. lp.Name,
+                                ["description"] = string.format(
+                                    "👤 **Ayrılan:** %s\n📊 **Kalan Oyuncu Sayısı:** %d/10\n⏱️ **Time:** %d dk",
+                                    leavingPlayerName, currentCount, elapsed
+                                ),
+                                ["color"] = 16753920, -- Turuncu
+                                ["timestamp"] = DateTime.now():ToIsoDate(),
+                                ["footer"] = {["text"] = "Charles Hub V5 - Sunucu Takibi"}
+                            }}
+                        }
+                        local url = getProxiedURL(playerCountWebhookURL)
+                        request_func({
+                            Url = url,
+                            Method = "POST",
+                            Headers = {["Content-Type"] = "application/json"},
+                            Body = HttpService:JSONEncode(data)
+                        })
+                    end)
+                end)
+
+                -- Telegram Bildirimi
+                if countTgToken ~= "" and telegramChatID ~= "" then
+                    task.spawn(function()
+                        pcall(function()
+                            local msg = string.format(
+                                "👥 *Oyuncu Ayrıldı!*\n👤 *Ayrılan:* %s\n📊 *Kalan:* %d/12\n⏱️ *Süre:* %d dk",
+                                leavingPlayerName:gsub("_", "\\_"),
+                                currentCount, elapsed
+                            )
+                            request_func({
+                                Url = "https://api.telegram.org/bot" .. countTgToken .. "/sendMessage",
+                                Method = "POST",
+                                Headers = {["Content-Type"] = "application/json"},
+                                Body = HttpService:JSONEncode({
+                                    chat_id = telegramChatID,
+                                    text = msg,
+                                    parse_mode = "Markdown"
+                                })
+                            })
+                        end)
+                    end)
+                end
+            end
+        end
+
+        -- [[ 10. BİLET SİSTEMİ VE PET BİLDİRİM DİNLEYİCİ ]] --
         local function ConnectRemote(remote)
             if not remote:IsA("RemoteEvent") then return end
             
@@ -584,6 +729,7 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
                             local nameStr = tostring(name)
                             local petType = arg.Tier or "Normal"
                             local actualRarity = "Unknown"
+
                             local baseData = PetData[nameStr]
                             
                             if not baseData then
@@ -608,30 +754,10 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
 
                                 local eggName = tostring(targetEggName or "Unknown Egg"):gsub(" Egg$", "") .. " Egg"
                                 sendPetNotification(nameStr, actualRarity, petType, multiplier, eggName, imageId)
-                                -- Telegram Bildirimi
-                                if telegramBotToken ~= "" and telegramChatID ~= "" then
-                                    pcall(function()
-                                        local msg = string.format(
-                                            "🐶 *%s (%s)* | New Pet!\n" ..
-                                            "👤 *User:* %s\n" ..
-                                            "💎 *Rarity:* %s\n" ..
-                                            "✨ *Type:* %s\n" ..
-                                            "📈 *Multiplier:* x%s\n" ..
-                                            "🥚 *Egg:* %s",
-                                            nameStr, petType or "Normal", lp.Name, actualRarity, petType or "Normal", formatNumber(multiplier or 0), eggName
-                                        )
-                                        request_func({
-                                            Url = "https://api.telegram.org/bot" .. telegramBotToken .. "/sendMessage",
-                                            Method = "POST",
-                                            Headers = {["Content-Type"] = "application/json"},
-                                            Body = HttpService:JSONEncode({
-                                                chat_id = telegramChatID,
-                                                text = msg,
-                                                parse_mode = "Markdown"
-                                            })
-                                        })
-                                    end)
-                                end
+                                -- Telegram Bildirimi (Arka Planda)
+                                task.spawn(function()
+                                    sendTelegramNotification(nameStr, actualRarity, petType, multiplier, eggName)
+                                end)
                             end
                         end
                     end
@@ -663,6 +789,24 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
         end
 
         task.spawn(SetupListeners)
+
+        -- [[ SUNUCU DEĞİŞİKLİĞİ TESPİTİ ]] --
+        pcall(function()
+            game:GetService("Players").LocalPlayer.OnTeleport:Connect(function()
+                sendServerChangeNotification("Teleport / Sunucu Atlama")
+            end)
+        end)
+        game.Players.PlayerRemoving:Connect(function(p)
+            if p == lp then
+                sendServerChangeNotification("Oyundan Çıkış")
+            else
+                -- Diğer oyuncular için: 2 saniye bekle (listenin güncellenmesi için) ve sonra 1 bildirim yolla
+                task.delay(2, function()
+                    sendPlayerCountNotification(p.Name)
+                end)
+            end
+        end)
+        debugLog("Sunucu değişiklik algılayıcısı aktif!")
 
         -- [[ ANA ÇALIŞTIRICI ]] --
         if not game:IsLoaded() then game.Loaded:Wait() end
@@ -706,6 +850,7 @@ local hubWebhookURL = "https://discord.com/api/webhooks/1453830529718681753/Wzmm
                     if openRemote then
                         HatchTickets = HatchTickets + openAmount
                         LastHatchRequestTime = tick()
+                        EggsOpenedTotal = EggsOpenedTotal + openAmount
                         
                         local result = openRemote:InvokeServer(targetEggName, openAmount)
                         
