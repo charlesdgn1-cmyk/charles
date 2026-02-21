@@ -389,7 +389,7 @@ local playerCountWebhookURL = countWebhookURL
         -- [[ AYARLAR ]] --
         local targetEggName = "Rainbow"   -- Açılacak yumurta adı
         local teleportZoneName = "Rainbow" -- Işınlanılacak ada/bölge adı
-        local openAmount = 8 
+        local openAmount = 9 
         local hatchSpeed = 0 
         _G.AutoPotion = false -- YENİ: Otomatik İksir Alma
 
