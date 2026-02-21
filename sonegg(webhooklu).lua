@@ -724,6 +724,13 @@ local playerCountWebhookURL = countWebhookURL
         local function ConnectRemote(remote)
             if not remote:IsA("RemoteEvent") then return end
             
+            -- [[ EQUIP/UNEQUIP FİLTRESİ ]] --
+            -- Zaten sahip olunan petlerin takılıp çıkarılması durumunda bildirim gitmesini engellemek için
+            local rName = remote.Name:lower()
+            if rName:find("equip") or rName:find("unequip") or rName:find("wear") or rName:find("select") or rName:find("use") or (rName:find("update") and not rName:find("hatch")) then
+                return
+            end
+
             remote.OnClientEvent:Connect(function(...)
                 local args = {...}
                 for _, arg in pairs(args) do
@@ -784,9 +791,9 @@ local playerCountWebhookURL = countWebhookURL
                 debugLog("⚠️ GetNetwork() klasör bulamadı (Dinleyici Kurulamadı)")
             end
             
-            -- Yedek: Eğer standart dışı bir yapı varsa RemoteEvent'leri genel tara
+            -- Yedek: Sadece Hatch ve Open içerenleri tara (Pet kelimesi çok geniştir, EquipPet'i de yakalar)
             for _, obj in pairs(ReplicatedStorage:GetDescendants()) do
-                if obj:IsA("RemoteEvent") and (obj.Name:find("Hatch") or obj.Name:find("Pet") or obj.Name:find("Open")) then
+                if obj:IsA("RemoteEvent") and (obj.Name:find("Hatch") or obj.Name:find("Open")) then
                     ConnectRemote(obj)
                 end
             end
