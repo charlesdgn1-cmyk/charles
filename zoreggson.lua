@@ -559,7 +559,7 @@ local playerCountWebhookURL = countWebhookURL
 
         -- Gold Machine için 100x100 Emniyet Zemini
         local function createFloorAtMachine()
-            local pos = Vector3.new(-31596.02, 3628.93, 3144.18)
+            local pos = Vector3.new(-31597.3, 3628.82, 3144.1)
             local floor = Instance.new("Part")
             floor.Name = "SafetyFloor"
             floor.Size = Vector3.new(50, 2, 50)
@@ -700,7 +700,7 @@ local playerCountWebhookURL = countWebhookURL
                     task.spawn(function()
                         pcall(function()
                             local msg = string.format(
-                                "👥 *Oyuncu Ayrıldı!*\n👤 *Ayrılan:* %s\n📊 *Kalan:* %d/12\n⏱️ *Süre:* %d dk",
+                                "👥 *Oyuncu Ayrıldı!*\n👤 *Ayrılan:* %s\n📊 *Kalan:* %d/10\n⏱️ *Süre:* %d dk",
                                 leavingPlayerName:gsub("_", "\\_"),
                                 currentCount, elapsed
                             )
@@ -849,6 +849,10 @@ local playerCountWebhookURL = countWebhookURL
             task.wait(1.5)
             if lp.Character then
                 lp.Character:PivotTo(eggModel:GetPivot() * CFrame.new(0, 0, 2))
+                task.wait(1)
+                -- Gold Machine Tpleme
+                print("✨ Gold Machine'e ışınlanılıyor...")
+                lp.Character:PivotTo(CFrame.new(-31597.3, 3628.82, 3144.1))
             end
             
             -- ADIM 3: Auto Hatch
