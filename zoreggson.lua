@@ -559,7 +559,7 @@ local playerCountWebhookURL = countWebhookURL
 
         -- Gold Machine için 100x100 Emniyet Zemini
         local function createFloorAtMachine()
-            local pos = Vector3.new(1415.5, 658.18, -13447.73)
+            local pos = Vector3.new(-31596.02, 3628.93, 3144.18)
             local floor = Instance.new("Part")
             floor.Name = "SafetyFloor"
             floor.Size = Vector3.new(50, 2, 50)
