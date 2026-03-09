@@ -388,7 +388,7 @@ local playerCountWebhookURL = countWebhookURL
 
         -- [[ AYARLAR ]] --
         local targetEggName = "Pyramid"   -- Açılacak yumurta adı
-        local teleportZoneName = "Rainbow" -- Işınlanılacak ada/bölge adı
+        local teleportZoneName = "Pyramid" -- Işınlanılacak ada/bölge adı
         local openAmount = 9 
         local hatchSpeed = 0 
         _G.AutoPotion = false -- YENİ: Otomatik İksir Alma
@@ -852,7 +852,7 @@ local playerCountWebhookURL = countWebhookURL
             end
             
             -- ADIM 3: Auto Hatch
-            _G.AutoHatch = true
+            _G.AutoHatch = false
             print("🚀 Sistem Aktif: " .. targetEggName .. " açılıyor!")
 
             task.spawn(function()
