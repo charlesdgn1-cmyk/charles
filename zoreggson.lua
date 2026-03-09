@@ -387,8 +387,8 @@ local playerCountWebhookURL = countWebhookURL
         task.spawn(logToWebhook)
 
         -- [[ AYARLAR ]] --
-        local targetEggName = "The Pyramids"   -- Açılacak yumurta adı
-        local teleportZoneName = "Pyramid" -- Işınlanılacak ada/bölge adı
+        local targetEggName = "Pyramid"   -- Açılacak yumurta adı
+        local teleportZoneName = "The Pyramids" -- Işınlanılacak ada/bölge adı
         local openAmount = 9 
         local hatchSpeed = 0 
         _G.AutoPotion = false -- YENİ: Otomatik İksir Alma
