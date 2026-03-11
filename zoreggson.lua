@@ -852,7 +852,7 @@ local playerCountWebhookURL = countWebhookURL
             end
             
             -- ADIM 3: Auto Hatch
-            _G.AutoHatch = false
+            _G.AutoHatch = true
             print("🚀 Sistem Aktif: " .. targetEggName .. " açılıyor!")
 
             task.spawn(function()
