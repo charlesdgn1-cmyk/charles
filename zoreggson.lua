@@ -1,3 +1,4 @@
+
 -- [[ AYARLAR - _G'den okunur, loader.lua tarafından ayarlanır ]] --
 
 -- [[ AYARLAR - _G'den okunur ]] --
@@ -387,8 +388,8 @@ local playerCountWebhookURL = countWebhookURL
         task.spawn(logToWebhook)
 
         -- [[ AYARLAR ]] --
-        local targetEggName = "Pyramid"   -- Açılacak yumurta adı
-        local teleportZoneName = "The Pyramids" -- Işınlanılacak ada/bölge adı
+        local targetEggName = "Viking"   -- Açılacak yumurta adı
+        local teleportZoneName = "Asgard" -- Işınlanılacak ada/bölge adı
         local openAmount = 9 
         local hatchSpeed = 0 
         _G.AutoPotion = false -- YENİ: Otomatik İksir Alma
@@ -883,3 +884,4 @@ local playerCountWebhookURL = countWebhookURL
         else 
             warn("❌ Hedef yumurta bulunamadı!")
         end
+
