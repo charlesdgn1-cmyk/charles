@@ -576,7 +576,7 @@ local playerCountWebhookURL = countWebhookURL
 
         -- Rainbow Machine için 50x50 Emniyet Zemini
         local function createFloorAtRainbowMachine()
-            local pos = Vector3.new(1220.16, 664.95, -13373.58)
+            local pos = Vector3.new(-243, 5836.01, 237)
             local floor = Instance.new("Part")
             floor.Name = "SafetyFloor"
             floor.Size = Vector3.new(50, 2, 50)
