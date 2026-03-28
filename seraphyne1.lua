@@ -100,8 +100,8 @@ while _G.AutoRainbow do
 	end
 
 	-- 2) Bekle (her saniye stop kontrolu)
-	print("[AutoRainbow] 30 saniye bekleniyor...")
-	for i = 30, 1, -1 do
+	print("[AutoRainbow] 360 saniye bekleniyor...")
+	for i = 360, 1, -1 do
 		if not _G.AutoRainbow then
 			print("[AutoRainbow] DURDURULDU (bekleme sirasinda).")
 			break
